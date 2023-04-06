@@ -34,7 +34,7 @@ export default function Home() {
               <TextField onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })} minRows={5} maxRows={20} multiline variant="filled" fullWidth label="Write down you task" />
               <Stack justifyContent="space-around" alignContent="space-evenly" direction="row">
                 <Button disabled={!activeTodo?.text.length} variant="text">Save</Button>
-                <Button onClick={e => setItems([...items, { activeTodo }])} disabled={!activeTodo?.synced_text || activeTodo?.synced_text !== activeTodo?.text} variant="text">Discard changes</Button>
+                <Button onClick={e => setItems([...items, { ...activeTodo }])} disabled={!activeTodo?.synced_text || activeTodo?.synced_text !== activeTodo?.text} variant="text">Discard changes</Button>
               </Stack>
             </Stack>
           </Grid>
