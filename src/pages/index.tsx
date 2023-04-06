@@ -1,16 +1,16 @@
+"use client"
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google';
 import { Container } from '@mui/system'
 import { Button, Grid, List, ListItem, ListItemButton, ListItemText, Stack, TextField, useTheme } from '@mui/material'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CreateOutlined } from '@mui/icons-material';
 import { activeTodoState, TodoItem, todoItemsState } from '@/state/todos';
 import { useRecoilState } from 'recoil';
 import axios from 'axios';
 
 const inter = Inter({ subsets: ['latin'] })
-
 // Active todo item - TodoItem
 
 export default function Home() {
@@ -22,6 +22,10 @@ export default function Home() {
   const discard = () => {
     // Restores last synced state
     setActiveTodo({ ...activeTodo, text: activeTodo.text });
+  }
+
+  const save = () => {
+    axios.post('/api/todos/', {...activeTodo});
   }
 
   return (
@@ -38,8 +42,8 @@ export default function Home() {
             <Stack direction="column" sx={{ padding: theme.spacing(2) }}>
               <TextField onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })} minRows={5} maxRows={20} multiline variant="filled" fullWidth label="Write down you task" />
               <Stack justifyContent="space-around" alignContent="space-evenly" direction="row">
-                <Button disabled={!activeTodo.text.length} variant="text">Save</Button>
-                <Button onClick={e => setItems([...items, { ...activeTodo }])} disabled={!activeTodo?.synced_text || activeTodo?.synced_text !== activeTodo?.text} variant="text">Discard changes</Button>
+                <Button onClick={save} disabled={!activeTodo.text.length} variant="text">Save</Button>
+                <Button onClick={discard} disabled={!activeTodo?.synced_text || activeTodo?.synced_text !== activeTodo?.text} variant="text">Discard changes</Button>
               </Stack>
             </Stack>
           </Grid>
