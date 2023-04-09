@@ -29,3 +29,17 @@ export async function createTodo(activeTodo: TodoItem) {
         return null;
     }
 }
+
+export async function deleteTodo(id: string) {
+    try {
+        const { data } = await axios.delete(`/api/todos/${id}`);
+        if(!!data){
+            return true;
+        }
+
+        return false;
+    }
+    catch(e){
+        return false;
+    }
+}

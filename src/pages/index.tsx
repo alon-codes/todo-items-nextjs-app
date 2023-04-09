@@ -10,10 +10,11 @@ import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState,
 import axios from 'axios';
 import { createTodo, updateTodo } from './api';
 import TodoListItem from '@/components/TodoItem';
-import { blueGrey, green } from '@mui/material/colors';
+import { amber, blue, blueGrey, green, indigo, orange, pink, red, yellow } from '@mui/material/colors';
 
 const inter = Inter({ subsets: ['latin'] })
 // Active todo item - TodoItem
+
 
 export default function Home() {
   const items = useRecoilValue(sortedTodosSelector);
@@ -40,20 +41,18 @@ export default function Home() {
       const updateRes = await updateTodo(incomingTodo.id, incomingTodo);
       const curItemIndex = items.findIndex(t => t.id === incomingTodo.id);
       if (!!updateRes) {
-        nextItems[curItemIndex] = {...updateRes};
+        nextItems[curItemIndex] = { ...updateRes };
       }
     }
 
     setItems(nextItems);
     resetActiveTodo();
     setTimeout(() => {
-      if(!!listRef.current && !incomingTodo.created_at){
+      if (!!listRef.current && !incomingTodo.created_at) {
         listRef.current.scrollIntoView(true)
       }
     }, 75);
   };
-
-  
 
   const moveTodo = useRecoilCallback(() => async (dragIndex: number, hoverIndex: number) => {
     let in_items = [...items];
@@ -68,8 +67,8 @@ export default function Home() {
     console.log({ in_items });
 
     if (!!next_item.id && !!prev_item.id) {
-        await updateTodo(next_item.id, in_items[dragIndex]);
-        await updateTodo(prev_item.id, in_items[hoverIndex]);
+      await updateTodo(next_item.id, in_items[dragIndex]);
+      await updateTodo(prev_item.id, in_items[hoverIndex]);
     }
 
     setItems(in_items);
@@ -90,44 +89,38 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
-        <Grid paddingY={4} justifyContent="space-between" container>
-          <Grid sx={{ marginLeft: 1, zIndex: 9999, position: 'sticky', top: 0, left: 0}} justifyItems="center" justifyContent="center" item md={4} xs={12}>
-            <Card sx={{ backgroundColor: blueGrey[50]}} >
-            <Stack  direction="column" sx={{ padding: theme.spacing(2) }}>
-              <Typography onClick={e => inputRef.current && inputRef.current.focus()} variant="subtitle2">Write down you task</Typography>
-              <TextField
-                inputProps={{
-                  ref: inputRef
-                }}
-                margin="normal"
-                id="content"
-                value={activeTodo.text || ''}
-                onKeyUp={async e => !e.shiftKey && e.key === "Enter" && await save({ ...activeTodo })}
-                onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })}
-                minRows={1}
-                maxRows={3}
-                multiline
-                variant="standard"
-                fullWidth />
-              <Stack justifyContent="space-around" alignContent="space-evenly" direction="row">
-                <Button onClick={async e => await save({ ...activeTodo })} disabled={!activeTodo.text.length} variant="text">Save</Button>
-                <Button onClick={discard} disabled={!activeTodo?.text || activeTodo?.synced_text === activeTodo?.text} variant="text">Discard changes</Button>
-              </Stack>
+        <Typography variant="h4">Todo list</Typography>
+        <Grid sx={{ backgroundColor: "#fff", width: "100%", zIndex: 9999, position: 'sticky', top: 0, left: 0 }} paddingY={4} justifyContent="space-between" container>
+          <Grid padding={2} container>
+            <Typography onClick={e => inputRef.current && inputRef.current.focus()} variant="subtitle2">Write down you task</Typography>
+            <TextField
+              inputProps={{
+                ref: inputRef
+              }}
+              margin="normal"
+              id="content"
+              value={activeTodo.text || ''}
+              onKeyUp={async e => !e.shiftKey && e.key === "Enter" && await save({ ...activeTodo })}
+              onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })}
+              minRows={1}
+              maxRows={3}
+              multiline
+              variant="standard"
+              fullWidth />
+            <Stack justifyContent="space-around" alignContent="space-evenly" direction="row">
+              <Button onClick={async e => await save({ ...activeTodo })} disabled={!activeTodo.text.length} variant="text">Save</Button>
+              <Button onClick={discard} disabled={!activeTodo?.text || activeTodo?.synced_text === activeTodo?.text} variant="text">Discard changes</Button>
             </Stack>
-            </Card>
-            
           </Grid>
-          <Grid sx={{ overflow: 'scroll'}} justifyItems="center" justifyContent="center" item md={7} xs={12}>
-            <Grid container>
-              {items.map((cur_todo_item: TodoItem, i: number) => <TodoListItem moveTodo={moveTodo} key={i} item={cur_todo_item} index={i} />)}
-              <div ref={listRef}></div>
-              {items.length === 0 && (
-                <Typography variant="h5">
-                  Your list is empty, give it a try add task!
-                </Typography>
-              )}
-            </Grid>
-          </Grid>
+        </Grid>
+        <Grid columnSpacing={2} container sx={{ overflow: 'scroll' }} justifyItems="center">
+          {items.map((cur_todo_item: TodoItem, i: number) => <TodoListItem moveTodo={moveTodo} key={i} item={cur_todo_item} index={i} />)}
+          <div ref={listRef}></div>
+          {items.length === 0 && (
+            <Typography variant="h5">
+              Your list is empty, give it a try add task!
+            </Typography>
+          )}
         </Grid>
         <Fab sx={{ position: "fixed", bottom: 15, left: 15 }} onClick={e => {
           resetActiveTodo()

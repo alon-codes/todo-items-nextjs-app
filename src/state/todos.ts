@@ -22,7 +22,8 @@ export const activeTodoState = atom<TodoItem>({
     default: {
         text: "",
         completed: false,
-        order: 1
+        order: 1,
+        id: ""
     }
 });
 
