@@ -94,21 +94,22 @@ export default function TodoListItem({ item, index, moveTodo }: TodoItemProps) {
     const updated_at_str = formatDistance(parseISO(item?.last_updated), new Date(), { includeSeconds: true, addSuffix: true })
     
     const cur_color = colors[item.order % colors.length][50];
-    const cur_color_btn = colors[item.order % colors.length][100]
+    const cur_color_btn = colors[item.order % colors.length][100];
+    const cur_border_btn = colors[item.order % colors.length][200];
     
     return (
-        <Grid padding={2} ref={ref} item md={4} xs={6} data-handler-id={handlerId}>
+        <Grid padding={2} ref={ref} item md={4} sm={6} xs={12} data-handler-id={handlerId}>
             <Card sx={{ borderRadius: '10px', backgroundColor: !isDragging ? cur_color : '#fff', minHeight: "180px", width: "100%", marginTop: 0, marginBottom: 3, marginRight: 3, cursor: "grabbing" }} >
                 <CardContent>
-                    <Stack alignItems="center" alignContent="center" direction="row">
+                    <Stack alignItems="flex-start" alignContent="center" direction="row">
                         <Stack direction="row" justifyItems="center" alignItems="center">
                             <DragIndicatorIcon />
                             <FormControlLabel sx={{ textDecoration: !!item.completed ? "line-through" : "initial" }} control={<Checkbox onChange={e => toggleDone(item)} checked={!!item.completed} />} label="" />
                             
                         </Stack>
-                        
+                        <Typography sx={{ paddingTop: 1, textDecoration: !!item.completed ? "line-through" : undefined}} paragraph>{item.text}</Typography>
                     </Stack>
-                    <Typography sx={{ textDecoration: !!item.completed ? "line-through" : undefined}} paragraph>{item.text}</Typography>
+                    
                     <Stack justifyContent="center" spacing={1} padding={1} width={"100%"} columnGap={1} paddingY={1} marginTop={2} direction="column">
                         <Stack spacing={1} direction="row">
                             <CalendarTodayOutlined />
