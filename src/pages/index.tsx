@@ -1,32 +1,85 @@
-"use client"
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google';
 import { Container } from '@mui/system'
-import { Button, Grid, List, ListItem, ListItemButton, ListItemText, Stack, TextField, useTheme } from '@mui/material'
-import { useEffect, useState } from 'react';
-import { CreateOutlined } from '@mui/icons-material';
-import { activeTodoState, TodoItem, todoItemsState } from '@/state/todos';
-import { useRecoilState } from 'recoil';
+import { Button, Card, Fab, Grid, Stack, TextField, Typography, useTheme } from '@mui/material'
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AddOutlined } from '@mui/icons-material';
+import { activeTodoState, allTodosState, sortedTodosSelector, TodoItem, todoItemsState } from '@/state/todos';
+import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil';
 import axios from 'axios';
+import { createTodo, updateTodo } from './api';
+import TodoListItem from '@/components/TodoItem';
+import { blueGrey, green } from '@mui/material/colors';
 
 const inter = Inter({ subsets: ['latin'] })
 // Active todo item - TodoItem
 
 export default function Home() {
-  const [items, setItems] = useState<Array<TodoItem>>([]);
-  const [activeTodo, setActiveTodo] = useRecoilState(activeTodoState);
-
+  const items = useRecoilValue(sortedTodosSelector);
+  const setItems = useSetRecoilState(allTodosState)
+  const [activeTodo, setActiveTodo] = useRecoilState<TodoItem>(activeTodoState);
+  const resetActiveTodo = useResetRecoilState(activeTodoState);
   const theme = useTheme();
+  const listRef = useRef<HTMLDivElement>(null);
 
   const discard = () => {
     // Restores last synced state
-    setActiveTodo({ ...activeTodo, text: activeTodo.text });
+    resetActiveTodo()
   }
 
-  const save = () => {
-    axios.post('/api/todos/', {...activeTodo});
-  }
+  const save = async (incomingTodo: TodoItem) => {
+    let nextItems: Array<TodoItem> = [...items];
+
+    if (!incomingTodo.created_at) {
+      const createRes = await createTodo({ ...incomingTodo, order: items.length });
+      if (!!createRes) {
+        nextItems = nextItems.concat({ ...createRes });
+      }
+    } else if (!!incomingTodo.id) {
+      const updateRes = await updateTodo(incomingTodo.id, incomingTodo);
+      const curItemIndex = items.findIndex(t => t.id === incomingTodo.id);
+      if (!!updateRes) {
+        nextItems[curItemIndex] = {...updateRes};
+      }
+    }
+
+    setItems(nextItems);
+    resetActiveTodo();
+    setTimeout(() => {
+      if(!!listRef.current && !incomingTodo.created_at){
+        listRef.current.scrollIntoView(true)
+      }
+    }, 75);
+  };
+
+  
+
+  const moveTodo = useRecoilCallback(() => async (dragIndex: number, hoverIndex: number) => {
+    let in_items = [...items];
+    const prev_item = { ...in_items[dragIndex] };
+    const next_item = { ...in_items[hoverIndex] };
+
+    console.log({ dragIndex, hoverIndex, in_items, prev_item, next_item });
+
+    in_items[dragIndex] = { ...next_item, order: prev_item.order };
+    in_items[hoverIndex] = { ...prev_item, order: next_item.order };
+
+    console.log({ in_items });
+
+    if (!!next_item.id && !!prev_item.id) {
+        await updateTodo(next_item.id, in_items[dragIndex]);
+        await updateTodo(prev_item.id, in_items[hoverIndex]);
+    }
+
+    setItems(in_items);
+  });
+
+  useEffect(() => {
+    axios.get('/api/todos/').then(res => setItems(res.data))
+  }, [])
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
@@ -36,32 +89,53 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Container fixed>
-        <Grid container>
-          <Grid justifyItems="center" justifyContent="center" item md={4} xs={12}>
-            <Stack direction="column" sx={{ padding: theme.spacing(2) }}>
-              <TextField onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })} minRows={5} maxRows={20} multiline variant="filled" fullWidth label="Write down you task" />
+      <Container>
+        <Grid paddingY={4} justifyContent="space-between" container>
+          <Grid sx={{ marginLeft: 1, zIndex: 9999, position: 'sticky', top: 0, left: 0}} justifyItems="center" justifyContent="center" item md={4} xs={12}>
+            <Card sx={{ backgroundColor: blueGrey[50]}} >
+            <Stack  direction="column" sx={{ padding: theme.spacing(2) }}>
+              <Typography onClick={e => inputRef.current && inputRef.current.focus()} variant="subtitle2">Write down you task</Typography>
+              <TextField
+                inputProps={{
+                  ref: inputRef
+                }}
+                margin="normal"
+                id="content"
+                value={activeTodo.text || ''}
+                onKeyUp={async e => !e.shiftKey && e.key === "Enter" && await save({ ...activeTodo })}
+                onChange={e => setActiveTodo({ ...activeTodo, text: e.currentTarget.value })}
+                minRows={1}
+                maxRows={3}
+                multiline
+                variant="standard"
+                fullWidth />
               <Stack justifyContent="space-around" alignContent="space-evenly" direction="row">
-                <Button onClick={save} disabled={!activeTodo.text.length} variant="text">Save</Button>
-                <Button onClick={discard} disabled={!activeTodo?.synced_text || activeTodo?.synced_text !== activeTodo?.text} variant="text">Discard changes</Button>
+                <Button onClick={async e => await save({ ...activeTodo })} disabled={!activeTodo.text.length} variant="text">Save</Button>
+                <Button onClick={discard} disabled={!activeTodo?.text || activeTodo?.synced_text === activeTodo?.text} variant="text">Discard changes</Button>
               </Stack>
             </Stack>
+            </Card>
+            
           </Grid>
-          <Grid justifyItems="center" justifyContent="center" item md={8} xs={12}>
-            <List>
-              {items.map((cur_todo_item, index) => (
-                <ListItem key={index}>
-                  <ListItemText>{cur_todo_item.text}</ListItemText>
-                  <ListItemButton>
-                    <Button>
-                      <CreateOutlined />
-                    </Button>
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
+          <Grid sx={{ overflow: 'scroll'}} justifyItems="center" justifyContent="center" item md={7} xs={12}>
+            <Grid container>
+              {items.map((cur_todo_item: TodoItem, i: number) => <TodoListItem moveTodo={moveTodo} key={i} item={cur_todo_item} index={i} />)}
+              <div ref={listRef}></div>
+              {items.length === 0 && (
+                <Typography variant="h5">
+                  Your list is empty, give it a try add task!
+                </Typography>
+              )}
+            </Grid>
           </Grid>
         </Grid>
+        <Fab sx={{ position: "fixed", bottom: 15, left: 15 }} onClick={e => {
+          resetActiveTodo()
+          inputRef.current && inputRef.current.focus()
+        }} variant="extended">
+          <AddOutlined sx={{ mr: 1 }} />
+          Create
+        </Fab>
       </Container>
     </>
   )
