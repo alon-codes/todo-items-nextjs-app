@@ -4,15 +4,15 @@ import ListItemButton from "@mui/material/ListItemButton";
 import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { CalendarTodayOutlined, DeleteForeverOutlined, UndoOutlined } from "@mui/icons-material";
-import { ListItemText, Typography, Stack, IconButton, Button, Box, Card, CardContent, CardActions, Checkbox, Grid, FormControlLabel } from "@mui/material";
+import { ListItemText, Typography, Stack, IconButton, Button, Box, Card, CardContent, CardActions, Checkbox, Grid, FormControlLabel, colors } from "@mui/material";
 import { deleteTodo, updateTodo } from "@/pages/api";
 import TaskAltSharpIcon from '@mui/icons-material/TaskAltSharp';
 import { useEffect, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { amber, blue, blueGrey, green, grey, indigo, orange, pink, red, yellow } from "@mui/material/colors";
 import CreateIconOutlined from "@mui/icons-material/Create";
 import HistoryIcon from '@mui/icons-material/History';
 import { format, formatDistance, parseISO } from "date-fns";
+import { mui_colors } from '../pages/index';
 
 enum DragTypes {
     todo = 'todo'
@@ -23,10 +23,6 @@ interface TodoItemProps {
     item: TodoItem;
     moveTodo: (a: number, b: number) => void
 }
-
-const colors = [
-    red, yellow, green, blue, indigo, amber, pink, orange
-  ]
 
 export default function TodoListItem({ item, index, moveTodo }: TodoItemProps) {
     const ref = useRef(null)
@@ -90,16 +86,16 @@ export default function TodoListItem({ item, index, moveTodo }: TodoItemProps) {
 
     console.log({ colors });
 
-    const created_at_str = formatDistance(parseISO(item?.created_at), new Date(), { includeSeconds: true, addSuffix: true });
-    const updated_at_str = formatDistance(parseISO(item?.last_updated), new Date(), { includeSeconds: true, addSuffix: true })
+    const created_at_str = !!item?.created_at ? formatDistance(parseISO(item?.created_at), new Date(), { includeSeconds: true, addSuffix: true }) : "N/A";
+    const updated_at_str = !!item?.last_updated ? formatDistance(parseISO(item?.last_updated), new Date(), { includeSeconds: true, addSuffix: true }) : "N/A";
     
-    const cur_color = colors[item.order % colors.length][50];
-    const cur_color_btn = colors[item.order % colors.length][100];
-    const cur_border_btn = colors[item.order % colors.length][200];
+    const cur_color: any = !!item.color ? Object.values(colors)[item.color] : colors.lightBlue;
     
+    console.log({ cur_color });
+
     return (
         <Grid padding={2} ref={ref} item md={4} sm={6} xs={12} data-handler-id={handlerId}>
-            <Card sx={{ borderRadius: '10px', backgroundColor: !isDragging ? cur_color : '#fff', minHeight: "180px", width: "100%", marginTop: 0, marginBottom: 3, marginRight: 3, cursor: "grabbing" }} >
+            <Card sx={{ borderRadius: '10px', backgroundColor: !isDragging ? cur_color[50] : '#fff', minHeight: "180px", width: "100%", marginTop: 0, marginBottom: 3, marginRight: 3, cursor: "grabbing" }} >
                 <CardContent>
                     <Stack alignItems="flex-start" alignContent="center" direction="row">
                         <Stack direction="row" justifyItems="center" alignItems="center">
@@ -124,14 +120,14 @@ export default function TodoListItem({ item, index, moveTodo }: TodoItemProps) {
                                 variant="outlined"
                                 onClick={e => toggleDone(item)}
                                 color="inherit"
-                                sx={{ backgroundColor: cur_color_btn }}
+                                sx={{ backgroundColor: cur_color[100] }}
                                 startIcon={!item.completed ? <TaskAltSharpIcon /> : <UndoOutlined />}>
                                 {item.completed !== true ? "Done" : "Undo"}
                                 </Button>
                             <Button
                                 variant="outlined"
                                 color="inherit"
-                                sx={{ backgroundColor: cur_color_btn }}
+                                sx={{ backgroundColor: cur_color[100] }}
                                 onClick={e => setActiveTodo({ ...item, synced_text: item.text })}
                                 startIcon={<CreateIconOutlined />}>
                                 Edit
@@ -140,7 +136,7 @@ export default function TodoListItem({ item, index, moveTodo }: TodoItemProps) {
                             <Button
                                 variant="outlined"
                                 color="inherit"
-                                sx={{ backgroundColor: cur_color_btn }}
+                                sx={{ backgroundColor: cur_color[100] }}
                                 onClick={async e => {
                                     await deleteTodo(item.id);
                                     setItems([...items.filter(i => i.id !== item.id)])

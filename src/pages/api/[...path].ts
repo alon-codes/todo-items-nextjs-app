@@ -1,7 +1,6 @@
 import { proxy } from "../../server/proxy";
 
-// @ts-ignore
-export default (req, res) => {
+export default function path(req: any, res: any) {
     return new Promise((resolve, reject) => {
       // removes the api prefix from url
       console.log({ u: req.url });

@@ -10,6 +10,7 @@ export interface TodoItem {
     completed: Boolean;
     order: number;
     index?: number;
+    color?: number;
 }
 
 export const todoItemsState = atom({
@@ -35,6 +36,6 @@ export const allTodosState = atom<Array<TodoItem>>({
 export const sortedTodosSelector = selector<Array<TodoItem>>({
     key: "todos/sorted",
     get: ({ get }) => {
-        return [...get(allTodosState)].sort((a, b) => a.order - b.order)
+        return [...get(allTodosState)].sort((a, b) => b.order - a.order)
     }
 })
