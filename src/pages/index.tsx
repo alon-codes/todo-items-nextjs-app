@@ -111,7 +111,7 @@ export default function Home() {
           {items.length === 0 && (
             <Stack width={'100%'} justifyItems="center" alignContent="center" justifyContent="center" alignItems="center" direction="column">
               <Typography textAlign="center" paddingX={4} variant="h5">
-                Your list is empty, give it a try add task!
+                Your list is empty, <br /> give it a try add task!
               </Typography>
               <Button fullWidth={false} startIcon={<AddOutlined />} onClick={e => inputRef.current && inputRef.current.focus()}>Create</Button>
             </Stack>
