@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   env: {
     // Django backend
-    NEXT_SERVICE_URL: "https://todo-items-django-server.vercel.app"
+    NEXT_PUBLIC_SERVICE_URL: "https://todo-items-django-server.vercel.app"
   }
 }
 
