@@ -4,7 +4,7 @@ import axios from "axios";
 
 export async function updateTodo(id: string, activeTodo: TodoItem) {
     try {
-        const { data } = await axios.put(`/api/todos/${id}`, { ...activeTodo, rand: Math.random() });
+        const { data } = await axios.put(`${process.env.NEXT_PUBLIC_SERVICE_URL}/api/todos/${id}`, { ...activeTodo, rand: Math.random() });
         if(!!data && !!data.last_updated){
             return data;
         }
@@ -18,7 +18,7 @@ export async function updateTodo(id: string, activeTodo: TodoItem) {
 
 export async function createTodo(activeTodo: TodoItem) {
     try {
-        const { data } = await axios.post('/api/todos/', { ...activeTodo });
+        const { data } = await axios.post(`${process.env.NEXT_PUBLIC_SERVICE_URL}/api/todos/`, { ...activeTodo });
         if(!!data && !!data.created_at){
             return data;
         }

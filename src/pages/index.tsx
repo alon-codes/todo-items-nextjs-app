@@ -19,7 +19,7 @@ export default function Home() {
 
   const discard = () => {
     // Restores last synced state
-    resetActiveTodo()
+    resetActiveTodo();
   }
 
   const save = async (incomingTodo: TodoItem) => {
@@ -68,7 +68,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    axios.get('/api/todos/').then(res => setItems(res.data))
+    axios.get(`${process.env.NEXT_PUBLIC_SERVICE_URL}/api/todos/`).then(res => setItems(res.data))
   }, [setItems])
 
   const inputRef = useRef<HTMLInputElement>(null);
